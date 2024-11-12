@@ -112,17 +112,18 @@
 
             if($orderBy){
                 switch($orderBy){
-                    case 'asc';
-                          $sql .='ORDER BY NOMBRE ASC';
-                          break;
-                    case 'desc';
-                          $sql .='ORDER BY NOMBRE DESC';
-                          break;
+                    case 'asc':
+                        $sql .= ' ORDER BY Nombre ASC';
+                        break;
+                    case 'desc':
+                        $sql .= ' ORDER BY Nombre DESC';
+                        break;
                 }
-              }
+            }
+            
 
             $queryJugadores = $this->db->prepare($sql);
-            $queryJugadores->execute([$sql]);
+            $queryJugadores->execute();
             $jugadores = $queryJugadores->fetchAll(PDO::FETCH_OBJ);
             return $jugadores;
         }

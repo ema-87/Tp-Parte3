@@ -1,8 +1,6 @@
-<IfModule mod_rewrite.c>
-	RewriteEngine On
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
+RewriteEngine On
+RewriteBase /Tp-parte3/
 
-    RewriteRule \.(?:css|js|jpe?g|gif|png)$ - [L]
-    RewriteRule ^(.*)$ router.php?action=$1 [QSA,L]
-</IfModule>
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/(.*)$ router.php?resource=$1 [QSA,L]

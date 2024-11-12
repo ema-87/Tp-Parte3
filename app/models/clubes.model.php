@@ -1,5 +1,4 @@
 <?php
-require_once 'config.php';
 // acceso a los datos
 
 class clubModel
@@ -16,7 +15,8 @@ class clubModel
 
     private function getDB()
     {
-        return $db = dataBase;
+        $db = new PDO('mysql:host=localhost;dbname=data-jugadores;charset=utf8', 'root', '');
+            return $db;
     }
 
     private function _deploy()
