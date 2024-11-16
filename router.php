@@ -1,7 +1,7 @@
-<?php
-    
+<?php 
     require_once 'libs/router.php';
     require_once 'app/controllers/jugador.controller.php';
+    require_once 'app/controllers/clubes.controller.php';
 
     $router = new Router();
 
@@ -14,7 +14,14 @@
     $router->addRoute('jugadores'  ,                'POST',    'jugadorApiController',   'create');
     $router->addRoute('jugadores/:id'  ,            'PUT',     'jugadorApiController',   'update');
     
-    $router->addRoute('usuarios/token'    ,            'GET',     'UserApiController',   'getToken');
+    $router->addRoute('clubes'      ,               'GET',     'clubApiController',   'getAll');
+    $router->addRoute('clubes/:id'  ,               'GET',     'clubApiController',   'get');
+    $router->addRoute('clubes/:id'  ,               'DELETE',  'clubApiController',   'delete');
+    $router->addRoute('clubes'  ,                   'POST',    'clubApiController',   'create');
+    $router->addRoute('clubes/:id'  ,               'PUT',     'clubApiController',   'update');
+
+
+    /*$router->addRoute('usuarios/token'    ,            'GET',     'UserApiController',   'getToken');*/
 
     $router->route($_GET['resource'], $_SERVER['REQUEST_METHOD']);
         

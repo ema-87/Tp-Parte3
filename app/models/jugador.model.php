@@ -85,28 +85,10 @@
 
         private function getDB(){
             $db = new PDO('mysql:host=localhost;dbname=data-jugadores;charset=utf8', 'root', '');
-            return $db;
+            return $db;       
         }
-/*    function getDetallesJugadores($sql, $orderBy = false) {
-            $sql = $this->db->prepare('SELECT jugadores.ID_Jugador, jugadores.Nombre, jugadores.Posicion, jugadores.Nacimiento, jugadores.Nacionalidad, clubes.Club AS club_nombre, clubes.Liga
-                             FROM jugadores
-                             JOIN clubes ON jugadores.id_club = clubes.id
-                             WHERE jugadores.ID_Jugador = ?');
+        
 
-              if($orderBy){
-                switch($orderBy){
-                    case 'asc';
-                          $sql .='ORDER BY NOMBRE ASC';
-                          break;
-                    case 'desc';
-                          $sql .='ORDER BY NOMBRE DESC';
-                          break;
-                }
-              }
-
-            $query = $this->db->prepare($sql);
-            $query->execute([$sql]);
-            return $query->fetch(PDO::FETCH_OBJ);         */
         function getAll($orderBy = false){
             $sql = 'SELECT * FROM jugadores';
 
@@ -163,12 +145,6 @@
             $queryJugadores->execute([$id]);
         }
 
-        /*function getJugadoresByClub($idClub) {
-            $queryJugadores = $this->db->prepare('SELECT * FROM jugadores WHERE id_club = ?');
-            $queryJugadores->execute([$idClub]);
-            $jugadores = $queryJugadores->fetchAll(PDO::FETCH_OBJ);
-            return $jugadores;
-        }*/
     }
 
 ?>

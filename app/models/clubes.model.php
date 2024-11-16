@@ -60,36 +60,60 @@ class clubModel
         return $this->db->lastInsertId();
     }
 
-    public function getClubIdByName($clubName)
+    /*public function getClubIdByName($clubName)
     {
         $query = $this->db->prepare('SELECT id FROM clubes WHERE Club = ?');
         $query->execute([$clubName]);
         return $query->fetchColumn(); // Devuelve el ID del club
-    }
+    }*/
 
+    function getClub($id) {
+        $query = $this->db->prepare('SELECT * FROM clubes WHERE clubes.id = ?');
+        $query->execute([$id]);
+        return $query->fetch(PDO::FETCH_OBJ);
+    }
 
 
     function remove($id)
-    {
-        $queryClubes = $this->db->prepare('DELETE FROM clubes WHERE id = ?');
-        $queryClubes->execute([$id]);
-    }
+{
+    // Primero, eliminar los jugadores que están asociados al club
+    $queryJugadores = $this->db->prepare('UPDATE jugadores SET id_club = NULL WHERE id_club = ?');
+    $queryJugadores->execute([$id]);
 
-    function getAll()
-    {
-        $queryClubes = $this->db->prepare('SELECT * FROM clubes ORDER BY Club ASC');
+    // Luego eliminar el club
+    $queryClubes = $this->db->prepare('DELETE FROM clubes WHERE id = ?');
+    $queryClubes->execute([$id]);
+}
+
+
+
+    function getAll($orderBy = false){
+        $sql = 'SELECT * FROM clubes';
+
+        if($orderBy){
+            switch($orderBy){
+                case 'asc':
+                    $sql .= ' ORDER BY Club ASC';
+                    break;
+                case 'desc':
+                    $sql .= ' ORDER BY Club DESC';
+                    break;
+            }
+        }
+        $queryClubes = $this->db->prepare($sql);
         $queryClubes->execute();
         $clubes = $queryClubes->fetchAll(PDO::FETCH_OBJ);
         return $clubes;
     }
-    function editClub($ligaEditada, $clubEditado, $id)
+
+
+    function editClub($clubEditado, $ligaEditada, $id)
     {
         $queryClubes = $this->db->prepare('
-                UPDATE jugadores 
-                JOIN clubes ON jugadores.id_club = clubes.id
-                SET jugadores.Posicion = ?, clubes.Club = ?, clubes.Liga = ?
-                WHERE jugadores.ID_Jugador = ?;
+                UPDATE clubes 
+                SET clubes.Club = ?, clubes.Liga = ?
+                WHERE clubes.id = ?;
             ');
-        $queryClubes->execute([$ligaEditada, $clubEditado, $id]);
+        $queryClubes->execute([$clubEditado, $ligaEditada, $id]);
     }
 }

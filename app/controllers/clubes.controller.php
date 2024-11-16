@@ -1,78 +1,104 @@
-<?php
-include_once 'app/models/clubes.model.php';
-include_once 'app/view/json.view.php';
-/*class clubController
-{
-
-    private $modelClubes;
-    private $modelJugadores;
-    private $viewClubes;
-
-    function __construct()
+    <?php
+    include_once 'app/models/clubes.model.php';
+    include_once 'app/view/json.view.php';
+    class clubApiController
     {
 
-        // instancio las clases en model y view para utilizar sus metodos dentro de la clase
-        $this->modelClubes = new clubModel();
-        $this->modelJugadores = new jugadorModel();
-        $this->viewClubes = new JsonView();
-    }
-    function showClubes()
-    {
-        $clubes = $this->modelClubes->getAll();
-        $this->viewClubes->response($clubes);
-    }
+        private $modelClubes;
+        private $viewClubes;
 
-
-
-    function getAll()
-    {
-        $clubes = $this->modelClubes->getAll();
-        return $clubes;
-    }
-    function addClub()
-    {
-        if (!empty($_POST['liga']) && !empty($_POST['club'])) {
-            $liga = $_POST['liga'];
-            $club = $_POST['club'];
-        } else {
-            $this->viewClubes->response();
-            die();
+        function __construct()
+        {
+            $this->modelClubes = new clubModel();
+            $this->viewClubes = new JsonView();
         }
 
-        $id = $this->modelClubes->insert($liga, $club);
 
-        if ($id) {
-            header('Location: ' . BASE_URL . 'clubes');
-        } else {
-            echo "No se pudo agregar el parcial!";
+        function getAll($req, $res)
+        {
+            $orderBy= false;
+            if(isset($req->query->orderBy)){
+                $orderBy = $req->query->orderBy;
+            }
+
+            $club = $this->modelClubes->getAll($orderBy);
+        return $this->viewClubes->response($club);
         }
-    }
 
-    function removeClub($id)
-    {
-        $jugadoresByClub = $this->modelJugadores->getJugadoresByClub($id);
 
-        if (count($jugadoresByClub) > 0) {
-            echo 'No se puede eliminar el club porque tiene jugadores asociados';
-        } else {
-            $this->modelClubes->remove($id);
-            header('Location: ' . BASE_URL . 'clubes');
+        public function create($req, $res) {
+
+            // valido los datos
+            if (empty($req->body->club) || empty($req->body->liga)) {
+                return $this->viewClubes->response('Faltan completar datos', 400);
+            }
+
+            // obtengo los datos
+            $club = $req->body->club;       
+            $liga = $req->body->liga;       
+        
+            // inserto los datos
+            $id = $this->modelClubes->insert($club, $liga);
+
+            if (!$id) {
+                return $this->viewClubes->response("Error al insertar el club", 500);
+            }
+
+            // buena práctica es devolver el recurso insertado
+            $club = $this->modelClubes->getClub($id);
+            return $this->viewClubes->response($club, 201);
         }
-    }
-
-    function editarClub($id)
-    {
-        if (!empty($_POST['editLiga']) && !empty($_POST['editClub'])) {
-            $clubEditado = $_POST['editLiga'];
-            $ligaEditada = $_POST['editClub'];
 
 
-            $this->modelClubes->editClub($ligaEditada, $clubEditado, $id);
+        public function update($req, $res) {
+            $id = $req->params->id;
 
-            header('Location: ' . BASE_URL . 'clubes');
-            exit;
-        } else {
-            $this->viewClubes->showError();
+            // verifico que exista
+            $club = $this->modelClubes->getClub($id);
+            if (!$club) {
+                return $this->viewClubes->response("el club con el id=$id no existe", 404);
+            }
+
+            // valido los datos
+            if (empty($req->body->club) || empty($req->body->liga)) {
+                return $this->viewClubes->response('Faltan completar datos', 400);
+            }
+
+            // obtengo los datos             
+            $clubId = $req->body->club;  
+            $liga = $req->body->liga;  
+            
+
+            // actualiza la tarea
+            $this->modelClubes->editClub( $clubId, $liga, $id);
+
+            // obtengo la tarea modificada y la devuelvo en la respuesta
+            $club = $this->modelClubes->getClub($id);
+            $this->viewClubes->response($club, 200);
         }
-    }
-}*/
+
+
+        function get($req, $res)
+        {
+            $id = $req->params->id;
+            $club = $this->modelClubes->getClub($id);
+            if (!$club) {
+                $this->viewClubes->response('el club con el id ' . $id . ' no existe');
+            } 
+            return  $this->viewClubes->response($club);
+        }   
+
+    
+            public function delete($req, $res)
+            {
+                $id = $req->params->id;
+
+                $club=$this->modelClubes->getClub($id);
+
+                if(!$club){
+                $this->viewClubes->response('el club con id ' . $id . ' no existe', 404);
+                } 
+                $this->modelClubes->remove($id);
+                $this->viewClubes->response('el club con id ' . $id . ' fue eliminado');
+            }
+        }     

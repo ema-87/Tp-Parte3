@@ -26,7 +26,7 @@ class jugadorApiController
          }
 
         $jugadores = $this->modelJugadores->getAll($orderBy);
-        $this->viewJugadores->response($jugadores);
+       return $this->viewJugadores->response($jugadores);
     }
 
 
