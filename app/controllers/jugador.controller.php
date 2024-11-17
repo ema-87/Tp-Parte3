@@ -8,33 +8,46 @@ class jugadorApiController
 {
 
     private $modelJugadores;
-    private $viewJugadores;
+    private $view;
 
     function __construct()
     {
 
         // instancio las clases en model y view para utilizar sus metodos dentro de la clase
         $this->modelJugadores = new jugadorModel();
-        $this->viewJugadores = new JsonView();
+        $this->view = new JsonView();
     }
 
-    function getAll($req, $res)
-    {
-         $orderBy= false;
-         if(isset($req->query->orderBy)){
-            $orderBy = $req->query->orderBy;
-         }
+        public function getAll($req, $res){
+                $nacionalidad = null;
+                
+                if(isset($req->query->nacionalidad)){
+                    $nacionalidad = $req->query->nacionalidad;
+                }
 
-        $jugadores = $this->modelJugadores->getAll($orderBy);
-       return $this->viewJugadores->response($jugadores);
-    }
+                $orderBy = false;
+                
+                if(isset($req->query->orderBy)){
+                    $orderBy = $req->query->orderBy;
+                }
+
+                $orderCamp = false;
+
+                if(isset($req->query->orderCamp)){
+                    $orderCamp = $req->query->orderCamp;
+                }
+                
+                $jugadores = $this->modelJugadores->getAll($nacionalidad, $orderBy, $orderCamp);
+
+                $this->view->response($jugadores);
+            }
 
 
     public function create($req, $res) {
 
         // valido los datos
         if (empty($req->body->nombre) || empty($req->body->posicion) || empty($req->body->nacimiento) || empty($req->body->clubId) || empty($req->body->nacionalidad)) {
-            return $this->viewJugadores->response('Faltan completar datos', 400);
+            return $this->view->response('Faltan completar datos', 400);
         }
 
         // obtengo los datos
@@ -48,13 +61,14 @@ class jugadorApiController
         $id = $this->modelJugadores->insert($nombre, $posicion, $nacimiento, $clubId, $nacionalidad);
 
         if (!$id) {
-            return $this->viewJugadores->response("Error al insertar el jugador", 500);
+            return $this->view->response("Error al insertar el jugador", 500);
         }
 
         // buena práctica es devolver el recurso insertado
         $jugador = $this->modelJugadores->getDetallesJugadores($id);
-        return $this->viewJugadores->response($jugador, 201);
+        return $this->view->response($jugador, 201);
     }
+    
 
     public function update($req, $res) {
         $id = $req->params->id;
@@ -62,12 +76,12 @@ class jugadorApiController
         // verifico que exista
         $jugador = $this->modelJugadores->getDetallesJugadores($id);
         if (!$jugador) {
-            return $this->viewJugadores->response("el jugador con el id=$id no existe", 404);
+            return $this->view->response("el jugador con el id=$id no existe", 404);
         }
 
          // valido los datos
          if (empty($req->body->posicion) || empty($req->body->clubId) || empty($req->body->liga)) {
-            return $this->viewJugadores->response('Faltan completar datos', 400);
+            return $this->view->response('Faltan completar datos', 400);
         }
 
         // obtengo los datos      
@@ -81,7 +95,7 @@ class jugadorApiController
 
         // obtengo la tarea modificada y la devuelvo en la respuesta
         $jugador = $this->modelJugadores->getDetallesJugadores($id);
-        $this->viewJugadores->response($jugador, 200);
+        $this->view->response($jugador, 200);
     }
 
 
@@ -91,9 +105,9 @@ class jugadorApiController
         $id = $req->params->id;
         $jugador = $this->modelJugadores->getDetallesJugadores($id);
         if (!$jugador) {
-            $this->viewJugadores->response('el jugador con el id ' . $id . ' no existe');
+            $this->view->response('el jugador con el id ' . $id . ' no existe');
         } 
-         return  $this->viewJugadores->response($jugador);
+         return  $this->view->response($jugador);
     }
 
    
@@ -105,9 +119,9 @@ class jugadorApiController
         $jugador=$this->modelJugadores->getDetallesJugadores($id);
 
         if(!$jugador){
-          $this->viewJugadores->response('el jugador con id ' . $id . ' no existe', 404);
+          $this->view->response('el jugador con id ' . $id . ' no existe', 404);
         } 
          $this->modelJugadores->remove($id);
-         $this->viewJugadores->response('el jugador con id ' . $id . ' fue eliminado');
+         $this->view->response('el jugador con id ' . $id . ' fue eliminado');
     }
 }

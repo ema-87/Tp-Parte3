@@ -9,78 +9,6 @@
         function __construct(){
             // abro la conexion aca porque la necesito en todos los metodos (solo la abro una sola vez)
             $this->db = $this->getDB();
-            $this->_deploy();
-        }
-
-        private function _deploy() {
-            $query = $this->db->query('SHOW TABLES LIKE "clubes"');
-            $tables = $query->fetchAll();
-            
-            if (count($tables) == 0) {
-                $sqlClubes = <<<END
-                CREATE TABLE clubes (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    Club varchar(50) NOT NULL,
-                    Liga varchar(100) NOT NULL
-                );         
-                END;
-
-                $this->db->exec($sqlClubes);
-
-                $sqlInsertClubes = <<<END
-                INSERT INTO clubes (id, Club, Liga) VALUES
-                (1, 'Boca Juniors', 'Argentina'),
-                (2, 'Real Madrid CF', 'Espana'),
-                (3, 'Newcastle United', 'Inglaterra'),
-                (4, 'FC Barcelona', 'España'),
-                (5, 'Bayern Munich', 'Alemania'),
-                (20, 'Villareal', 'Espana'),
-                (21, 'Inter ', 'Italia'),
-                (22, 'Milan', 'Italia'),
-                (24, 'River Plate', 'Argentina'),
-                (25, 'FC Barcelona', 'España'),
-                (26, 'Ferro', 'Argentina');
-                END;
-
-                $this->db->exec($sqlInsertClubes);
-            }
-
-            $query = $this->db->query('SHOW TABLES LIKE "jugadores"');
-            $tables = $query->fetchAll();
-            if(count($tables) == 0) {
-                $sql = <<<END
-                CREATE TABLE `jugadores` (
-                `ID_Jugador` int(11) NOT NULL,
-                `Nombre` varchar(50) NOT NULL,
-                `Posicion` varchar(50) NOT NULL,
-                `Nacimiento` date NOT NULL,
-                `id_club` int(11) NOT NULL,
-                `Nacionalidad` varchar(150) NOT NULL
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
-
-                ALTER TABLE `jugadores`
-                ADD PRIMARY KEY (`ID_Jugador`),
-                ADD KEY `id` (`id_club`) USING BTREE;
-
-                ALTER TABLE `jugadores`
-                MODIFY `ID_Jugador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
-
-                ALTER TABLE `jugadores`
-                ADD CONSTRAINT `jugadores_ibfk_1` FOREIGN KEY (`id_club`) REFERENCES `clubes` (`id`) ON UPDATE CASCADE;
-                END;
-                $this->db->exec($sql);
-                
-                $sqlInsert = <<<END
-                INSERT INTO `jugadores` (`ID_Jugador`, `Nombre`, `Posicion`, `Nacimiento`, `id_club`, `Nacionalidad`) VALUES
-                (1, 'Lamine Yamal', 'Extremo Derecho', '2007-09-13', 1, 'Espana'),
-                (4, 'Leandro Brey', 'Mediocampita', '2002-09-21', 4, 'Argentina'),
-                (37, 'ZX', 'Arquero', '2024-10-23', 5, 'Espana'),
-                (38, 'asdsdasd', 'asd', '2024-10-07', 1, 'Argentina'),
-                (40, 'Libre', 'Arquero', '2024-10-01', 5, '');
-                END;
-
-                $this->db->exec($sqlInsert);
-            }
         }
 
         private function getDB(){
@@ -89,25 +17,113 @@
         }
         
 
-        function getAll($orderBy = false){
-            $sql = 'SELECT * FROM jugadores';
+        public function getAll($nacionalidad = null, $orderBy = false, $orderCamp = false){
 
-            if($orderBy){
-                switch($orderBy){
-                    case 'asc':
-                        $sql .= ' ORDER BY Nombre ASC';
-                        break;
-                    case 'desc':
-                        $sql .= ' ORDER BY Nombre DESC';
-                        break;
-                }
-            }
+            if($nacionalidad===null){
+                $sql = 'SELECT * FROM jugadores';
+    
+                    if($orderBy && $orderCamp){
+                        switch($orderBy){
+                            case 'asc':
+                                switch($orderCamp){
+                                    case 'Nombre':
+                                        $sql .= ' ORDER BY Nombre ASC';
+                                        break;
+                                    case 'Posicion':
+                                        $sql .= ' ORDER BY Posicion ASC';
+                                        break;
+                                    case 'Nacimiento':
+                                        $sql .= ' ORDER BY Nacimiento ASC';
+                                        break;
+                                    case 'id_club':
+                                        $sql .= ' ORDER BY id_club ASC';
+                                        break;
+                                    case 'Nacionalidad':
+                                        $sql .= ' ORDER BY Nacionalidad ASC';
+                                        break;
+                                }
+                                break;
+                            case 'desc':
+                                switch($orderCamp){
+                                    case 'Nombre':
+                                        $sql .= ' ORDER BY Nombre DESC';
+                                        break;
+                                    case 'Posicion':
+                                        $sql .= ' ORDER BY Posicion DESC';
+                                        break;
+                                    case 'Nacimiento':
+                                        $sql .= ' ORDER BY Nacimiento DESC';
+                                        break;
+                                    case 'id_club':
+                                        $sql .= ' ORDER BY id_club DESC';
+                                        break;
+                                    case 'Nacionalidad':
+                                        $sql .= ' ORDER BY Nacionalidad DESC';
+                                        break;
+                                }
+                                break;
+                        }
+                    }
+        
+                $query = $this->db->prepare($sql);
+                $query->execute();
+        
+                $jugadores = $query->fetchAll(PDO::FETCH_OBJ);
             
-
-            $queryJugadores = $this->db->prepare($sql);
-            $queryJugadores->execute();
-            $jugadores = $queryJugadores->fetchAll(PDO::FETCH_OBJ);
-            return $jugadores;
+                return $jugadores;
+                    } 
+    
+            if($nacionalidad !== null){
+                $sql = 'SELECT * FROM jugadores WHERE Nacionalidad = ?';
+                   
+                if($orderBy && $orderCamp){
+                    switch($orderBy){
+                        case 'asc':
+                            switch($orderCamp){
+                                case 'Nombre':
+                                    $sql .= ' ORDER BY Nombre ASC';
+                                    break;
+                                case 'Posicion':
+                                    $sql .= ' ORDER BY Posicion ASC';
+                                    break;
+                                case 'Nacimiento':
+                                    $sql .= ' ORDER BY Nacimiento ASC';
+                                    break;
+                                case 'id_club':
+                                    $sql .= ' ORDER BY id_club ASC';
+                                    break;
+                                case 'Nacionalidad':
+                                    $sql .= ' ORDER BY Nacionalidad ASC';
+                                    break;
+                            }
+                            break;
+                        case 'desc':
+                            switch($orderCamp){
+                                case 'Nombre':
+                                    $sql .= ' ORDER BY Nombre DESC';
+                                    break;
+                                case 'Posicion':
+                                    $sql .= ' ORDER BY Posicion DESC';
+                                    break;
+                                case 'Nacimiento':
+                                    $sql .= ' ORDER BY Nacimiento DESC';
+                                    break;
+                                case 'id_club':
+                                    $sql .= ' ORDER BY id_club DESC';
+                                    break;
+                                case 'Nacionalidad':
+                                    $sql .= ' ORDER BY Nacionalidad DESC';
+                                    break;
+                            }
+                            break;
+                    }
+                }
+                $query = $this->db->prepare($sql);
+                $query->execute([$nacionalidad]);
+        
+                $jugadores = $query->fetchAll(PDO::FETCH_OBJ);
+                return $jugadores;
+            }
         }
 
 

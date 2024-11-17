@@ -10,7 +10,6 @@ class clubModel
     {
         // abro la conexion aca porque la necesito en todos los metodos (solo la abro una sola vez)
         $this->db = $this->getDB();
-        $this->_deploy();
     }
 
     private function getDB()
@@ -19,39 +18,6 @@ class clubModel
             return $db;
     }
 
-    private function _deploy()
-    {
-        $query = $this->db->query('SHOW TABLES LIKE "clubes"');
-        $tables = $query->fetchAll();
-        if (count($tables) == 0) {
-            $sql = <<<END
-                CREATE TABLE clubes (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    Club varchar(50) NOT NULL,
-                    Liga varchar(100) NOT NULL
-                );         
-                END;
-            $this->db->query($sql);
-
-            $sqlInsert = <<<END
-                INSERT INTO clubes (id, Club, Liga) VALUES
-                (1, 'Boca Juniors', 'Argentina'),
-                (2, 'Real Madrid CF', 'Espana'),
-                (3, 'Newcastle United', 'Inglaterra'),
-                (4, 'FC Barcelona', 'España'),
-                (5, 'Bayern Munich', 'Alemania'),
-                (20, 'Villareal', 'Espana'),
-                (21, 'Inter ', 'Italia'),
-                (22, 'Milan', 'Italia'),
-                (24, 'River Plate', 'Argentina'),
-                (25, 'FC Barcelona', 'España'),
-                (26, 'Ferro', 'Argentina');
-                END;
-            $this->db->query($sqlInsert);
-        }
-    }
-
-
     function insert($liga, $club)
     {
         $queryClubes = $this->db->prepare('INSERT INTO clubes (Club, Liga) VALUES (?,?)');
@@ -59,13 +25,6 @@ class clubModel
 
         return $this->db->lastInsertId();
     }
-
-    /*public function getClubIdByName($clubName)
-    {
-        $query = $this->db->prepare('SELECT id FROM clubes WHERE Club = ?');
-        $query->execute([$clubName]);
-        return $query->fetchColumn(); // Devuelve el ID del club
-    }*/
 
     function getClub($id) {
         $query = $this->db->prepare('SELECT * FROM clubes WHERE clubes.id = ?');
@@ -86,26 +45,75 @@ class clubModel
 }
 
 
+    public function getAll($liga = null, $orderBy = false, $orderCamp = false){
 
-    function getAll($orderBy = false){
-        $sql = 'SELECT * FROM clubes';
+        if($liga===null){
+            $sql = 'SELECT * FROM clubes';
 
-        if($orderBy){
-            switch($orderBy){
-                case 'asc':
-                    $sql .= ' ORDER BY Club ASC';
-                    break;
-                case 'desc':
-                    $sql .= ' ORDER BY Club DESC';
-                    break;
-            }
+            if($orderBy && $orderCamp){
+                switch($orderBy){
+                    case 'asc':
+                        switch($orderCamp){
+                            case 'Club':
+                                $sql .= ' ORDER BY Club ASC';
+                                break;
+                            case 'Liga':
+                                $sql .= ' ORDER BY Liga ASC';
+                                break;
+                        }
+                        break;
+                    case 'desc':
+                        switch($orderCamp){
+                            case 'Club':
+                                $sql .= ' ORDER BY Club DESC';
+                                break;
+                            case 'Liga':
+                                $sql .= ' ORDER BY Liga DESC';
+                                break;
+                        }
+                        break;
+                }
+            }    
+            $queryClubes = $this->db->prepare($sql);
+            $queryClubes->execute();
+            $clubes = $queryClubes->fetchAll(PDO::FETCH_OBJ);
+            return $clubes;
         }
-        $queryClubes = $this->db->prepare($sql);
-        $queryClubes->execute();
-        $clubes = $queryClubes->fetchAll(PDO::FETCH_OBJ);
-        return $clubes;
-    }
 
+        if($liga !== null){
+            $sql = 'SELECT * FROM clubes WHERE Liga = ?';
+               
+            if($orderBy && $orderCamp){
+                switch($orderBy){
+                    case 'asc':
+                        switch($orderCamp){
+                            case 'Club':
+                                $sql .= ' ORDER BY Club ASC';
+                                break;
+                            case 'Liga':
+                                $sql .= ' ORDER BY Liga ASC';
+                                break;
+                        }
+                        break;
+                    case 'desc':
+                        switch($orderCamp){
+                            case 'Club':
+                                $sql .= ' ORDER BY Club DESC';
+                                break;
+                            case 'Liga':
+                                $sql .= ' ORDER BY Liga DESC';
+                                break;
+                        }
+                        break;
+                }
+            }    
+            $query = $this->db->prepare($sql);
+            $query->execute([$liga]);
+    
+            $clubes = $query->fetchAll(PDO::FETCH_OBJ);
+            return $clubes;
+        }
+    }
 
     function editClub($clubEditado, $ligaEditada, $id)
     {
